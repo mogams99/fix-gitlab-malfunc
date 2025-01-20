@@ -7,7 +7,7 @@ GITLAB_HOST = "https://<gitlab-host>/api/v4/projects"
 PRIVATE_TOKEN = "<access-token>" 
 
 def get_projects():
-    """Mengambil semua project dari GitLab."""
+    """Fetch all projects from GitLab."""
     url = f"{GITLAB_HOST}/api/v4/projects"
     headers = {"PRIVATE-TOKEN": PRIVATE_TOKEN}
     projects = []
@@ -30,7 +30,7 @@ def get_projects():
     return projects
 
 def get_commits_by_committer(project_id, committer_name):
-    """Mengambil commit dari project berdasarkan committer_name."""
+    """Fetch commits from a project based on the committer_name."""
     url = f"{GITLAB_HOST}/api/v4/projects/{project_id}/repository/commits"
     headers = {"PRIVATE-TOKEN": PRIVATE_TOKEN}
     params = {"per_page": 100}
@@ -49,16 +49,16 @@ def get_commits_by_committer(project_id, committer_name):
     return filtered_commits
 
 def format_datetime_with_day(iso_date):
-    """Mengonversi waktu ISO 8601 ke format manusiawi dengan hari."""
+    """Convert ISO 8601 time to human-readable format with day."""
     date_obj = datetime.fromisoformat(iso_date.replace("Z", "+00:00"))
     return date_obj.strftime("%A, %d %B %Y %H:%M:%S")
 
 if __name__ == "__main__":
     committer_name = "dependabot[bot]"
     projects = get_projects()
-    filtered_projects = 0  # Untuk menghitung proyek yang memiliki commit dari dependabot[bot]
+    filtered_projects = 0  #? To count projects with commits from dependabot[bot]
 
-    #? List untuk menyimpan data yang akan ditulis ke file Excel
+    #? List to store data that will be written to an Excel file
     all_data = []
 
     for project in projects:
@@ -67,13 +67,13 @@ if __name__ == "__main__":
         commits = get_commits_by_committer(project_id, committer_name)
 
         if commits:
-            filtered_projects += 1  # Menambah hitungan proyek dengan commit dari dependabot[bot]
+            filtered_projects += 1  #? Increment count of projects with commits from dependabot[bot]
             for commit in commits:
                 commit_id = commit["id"]
                 commit_title = commit["title"]
                 committed_date = format_datetime_with_day(commit["committed_date"])
 
-                # ? Tambahkan data ke list
+                #? Add data to the list
                 all_data.append({
                     "Project Name": project_name,
                     "Project ID": project_id,
@@ -83,15 +83,15 @@ if __name__ == "__main__":
                     "Committer Name": committer_name,
                 })
 
-    #? Menambahkan tanggal saat file diekspor
+    #? Add the date when the file is exported
     export_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     output_file = f"dependabot_commits_{export_date}.xlsx"
 
-    #? Buat DataFrame dari list data
+    #? Create DataFrame from the list of data
     if all_data:
         df = pd.DataFrame(all_data)
 
-        #? Simpan ke file Excel
+        #? Save to Excel file
         df.to_excel(output_file, index=False)
         print(f"Found {filtered_projects} projects with commits from {committer_name}.")
         print(f"Data saved to {output_file}")
